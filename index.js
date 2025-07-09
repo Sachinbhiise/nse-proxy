@@ -1,36 +1,35 @@
-const express = require('express');
 const chromium = require('chrome-aws-lambda');
+const express = require('express');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.get('/announcements', async (req, res) => {
+  let browser = null;
+
   try {
-    const browser = await chromium.puppeteer.launch({
+    browser = await chromium.puppeteer.launch({
       args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
       headless: chromium.headless,
     });
 
     const page = await browser.newPage();
-    await page.setExtraHTTPHeaders({
-      'User-Agent': 'Mozilla/5.0',
-      'Accept': '*/*'
-    });
-
     await page.goto('https://www.nseindia.com/api/corporate-announcements?index=equities', {
       waitUntil: 'domcontentloaded',
-      timeout: 30000
+      timeout: 30000,
     });
 
     const content = await page.evaluate(() => {
       return JSON.parse(document.querySelector('pre')?.innerText || '{}');
     });
 
-    await browser.close();
     res.json(content);
   } catch (error) {
     res.status(500).json({ error: error.toString() });
+  } finally {
+    if (browser !== null) await browser.close();
   }
 });
 
