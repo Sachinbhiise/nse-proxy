@@ -1,19 +1,18 @@
-// 📦 NSE Announcements Proxy (Node.js + Express + Puppeteer)
-
 const express = require('express');
 const chromium = require('chrome-aws-lambda');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.get('/announcements', async (req, res) => {
   try {
     const browser = await chromium.puppeteer.launch({
-  args: chromium.args,
-  executablePath: await chromium.executablePath,
-  headless: chromium.headless,
-});
-    const page = await browser.newPage();
+      args: chromium.args,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
+    });
 
+    const page = await browser.newPage();
     await page.setExtraHTTPHeaders({
       'User-Agent': 'Mozilla/5.0',
       'Accept': '*/*'
